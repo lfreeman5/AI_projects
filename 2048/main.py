@@ -95,3 +95,6 @@ if __name__ == "__main__":
         k = play_random_game()
         if(i%10==0):
             print(k)
+
+
+### NEXT SWAP TO LOOKUP TABLE
