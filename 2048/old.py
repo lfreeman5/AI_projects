@@ -1,4 +1,5 @@
 import numpy as np
+import time
 
 
 
@@ -77,7 +78,6 @@ def print_matrix(matrix):
 def play_random_game():
     state = np.zeros((4,4), dtype=np.int32)
     state = add_tile(state)
-    moves = ['u','l','r','d']
     i = 0
     while True:
         valid_moves = which_moves_viable(state)
@@ -91,10 +91,13 @@ def play_random_game():
             return i
 
 if __name__ == "__main__":
-    for i in range(1000):
-        k = play_random_game()
-        if(i%10==0):
-            print(k)
+    runs = 100
+    t0 = time.perf_counter()
+    for i in range(runs):
+        _ = play_random_game()
+    t1 = time.perf_counter()
+    total = t1 - t0
+    print(f"old: ran {runs} games in {total:.4f}s, avg {total / runs:.6f}s/game")
 
 
 ### NEXT SWAP TO LOOKUP TABLE
