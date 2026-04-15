@@ -137,10 +137,12 @@ if __name__ == "__main__":
     #     state = move_state(state, move_left, move_right, choice)
     #     state = add_random_tile(state)
     # timing: run 1000 random games and report total + average time
-    runs = 100
+    runs = 1000
     t0 = time.perf_counter()
     for i in range(runs):
         _ = play_random_game(move_left, move_right, can_left, can_right)
+        if(i%100==0):
+            print(_)
     t1 = time.perf_counter()
     total = t1 - t0
     print(f"main_lut: ran {runs} games in {total:.4f}s, avg {total / runs:.6f}s/game")
