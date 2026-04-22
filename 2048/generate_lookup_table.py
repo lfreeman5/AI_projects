@@ -1,5 +1,5 @@
 import numpy as np
-from old import collapse_right
+from utilities import collapse_right
 
 def extract_nibbles(x: np.uint16 | int) -> list[int]:
     # x between 0 and 65536, returns 4 bits
@@ -24,23 +24,31 @@ def reverse_row(row: np.uint16) -> np.uint16:
       | ((row & 0xF000) >> 12)
     )
 
-def generate_move_tables() -> tuple[np.ndarray, np.ndarray]:
+def generate_move_tables() -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     moves_right = np.zeros(65536, dtype=np.uint16)
     moves_left = np.zeros(65536, dtype=np.uint16)
+    added_score_left = np.zeros(65536, dtype=np.uint16)
+    added_score_right = np.zeros(65536, dtype=np.uint16)
     for i in np.arange(65536, dtype=np.uint16):
-        vec = [0 if x == 0 else 2**x for x in extract_nibbles(i)]
-        updated_vec = collapse_right(vec)
-        nibbles = [0 if x == 0 else int(np.log2(x)) for x in updated_vec]
-        moves_right[i] = pack_nibbles(nibbles)
+        vec = extract_nibbles(i)
+        updated_vec, added_score = collapse_right(vec)
+        moves_right[i] = pack_nibbles(updated_vec)
+        added_score_right[i] = added_score
 
         # make left moves
         reversed_row = reverse_row(i)
-        vec = [0 if x == 0 else 2**x for x in extract_nibbles(reversed_row)]
-        updated_vec = collapse_right(vec)
-        nibbles = [0 if x == 0 else int(np.log2(x)) for x in updated_vec]
-        moves_left[i] = reverse_row(pack_nibbles(nibbles))
+        vec = extract_nibbles(reversed_row)
+        updated_vec, added_score = collapse_right(vec)
+        moves_left[i] = reverse_row(pack_nibbles(updated_vec))
+        added_score_left[i] = added_score
 
-    return moves_left, moves_right
+    return moves_left, moves_right, added_score_left, added_score_right
+
+def generate_max_tile_table() -> np.ndarray:
+    max_score = np.zeros(65536, dtype=np.uint16)
+    for i in np.arange(65536, dtype=np.uint16):
+        max_score[i] = np.max([0 if x == 0 else 2**x for x in extract_nibbles(i)])
+    return max_score
 
 
 def generate_possible_tables(moves_left: np.ndarray, moves_right: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
@@ -51,22 +59,3 @@ def generate_possible_tables(moves_left: np.ndarray, moves_right: np.ndarray) ->
         move_right[i] = moves_right[i] != i
     return move_left, move_right
 
-if __name__ == "__main__":
-    moves_left, moves_right = generate_move_tables()
-    generate_possible_tables(moves_left, moves_right)
-    print(extract_nibbles(1500))
-# Even better simplification
-
-# You may not need this table at all.
-
-# While building your move LUT:
-
-# can_left  = (new_row_left  != row)
-# can_right = (new_row_right != row)
-
-# So you can store:
-
-# move_table_left[row]
-# move_table_right[row]
-
-# and infer legality via comparison.
